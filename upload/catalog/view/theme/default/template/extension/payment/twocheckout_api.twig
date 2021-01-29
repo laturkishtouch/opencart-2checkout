@@ -1,0 +1,130 @@
+<script type="text/javascript" src="https://2pay-js.2checkout.com/v1/2pay.js?v={{ date().timestamp }}"></script>
+<div id="tcoApiForm">
+    <div id="tcoWait">
+        <div class="text">
+            <img src="catalog/view/theme/default/image/tco_spinner.gif">
+            Processing, please wait!
+        </div>
+    </div>
+    <form id="tco-payment-form" data-style="{{ config['payment_twocheckout_api_custom_style'] }}">
+        <div id="card-element">
+            <!-- A TCO IFRAME will be inserted here. -->
+        </div>
+        <button class="btn btn-primary pull-right" id="placeOrderTco" data-text="{{ button_confirm }}">{{ button_confirm }}</button>
+        <div class="clearfix"></div>
+    </form>
+</div>
+<script>
+
+    let seller_id = '{{ config['payment_twocheckout_api_account'] }}',
+        style = '{{ config['payment_twocheckout_api_custom_style'] }}',
+        customer = '{{ customer }}',
+        default_style = '{{ config['payment_twocheckout_api_use_default_style'] }}',
+        action_url = '{{ action }}';
+    $(document).ready(function () {
+        tcoLoaded();
+    });
+
+    function tcoLoaded() {
+        window.setTimeout(function () {
+            if (window['TwoPayClient']) {
+                prepare2PayJs();
+            } else {
+                tcoLoaded();
+            }
+        }, 100);
+    }
+
+    function prepare2PayJs() {
+        let jsPaymentClient = new TwoPayClient(seller_id),
+            component = (default_style === 'yes') ?
+                jsPaymentClient.components.create('card') :
+                jsPaymentClient.components.create('card', JSON.parse(style));
+        component.mount('#card-element');
+
+        // Handle form submission.
+        $('body').on('click', '#placeOrderTco', function (event) {
+            event.preventDefault();
+            $('.tco-error').remove();
+            startProcessing2Co();
+
+            jsPaymentClient.tokens.generate(component, {name: customer}).then(function (response) {
+                $.ajax({
+                    type: 'POST',
+                    url: action_url,
+                    data: {ess_token: response.token},
+                    dataType: 'json',
+                    cache: false
+                }).done(function (response) {
+                    if (response.success && response.redirect) {
+                        window.location.href = response.redirect;
+                    } else {
+                        addError2Co(response.messages);
+                    }
+                }).error(function (response) {
+                    console.error(response);
+                    addError2Co('Your payment could not be processed. Please refresh the page and try again!');
+                });
+
+            }).catch(function (error) {
+                if (error.toString() !== 'Error: Target window is closed') {
+                    console.error(error);
+                    addError2Co(error.toString());
+                }
+            });
+        });
+    }
+
+    function addError2Co(string) {
+        $('#tcoApiForm').prepend('<div class="tco-error">' + string + '</div>');
+        stopProcessing2Co();
+    }
+
+    function stopProcessing2Co() {
+        $('#placeOrderTco').attr('disabled', false).html($('#placeOrderTco').data('text'));
+        $('#tcoWait').hide();
+    }
+
+    function startProcessing2Co() {
+        $('#placeOrderTco').attr('disabled', false).html('Processing...');
+        $('#tcoWait').show();
+    }
+</script>
+<style>
+    #tcoApiForm {
+        position: relative;
+        padding: 10px 0px;
+    }
+
+    .tco-error li {
+        margin-left: 15px;
+    }
+
+    .tco-error {
+        background: #F32A2A;
+        color: #FFF;
+        padding: 10px;
+        font-size: 12px;
+        margin-bottom: 10px;
+    }
+
+    #tcoWait .text {
+        margin: auto;
+        position: relative;
+        top: 30%;
+        color: #555;
+    }
+
+    #tcoWait {
+        text-align: center;
+        width: 100%;
+        display: none;
+        height: 100%;
+        top: 0;
+        left: 0;
+        position: absolute;
+        color: #4939E4;
+        z-index: 99;
+        background: rgba(252, 252, 252, 0.7);
+    }
+</style>

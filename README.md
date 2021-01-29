@@ -1,33 +1,30 @@
-#### Please Note: This extension only supports OpenCart 3.x inline flow, for OpenCart below the newer 3.x please use the 2Checkout extention bundled with OpenCart 2.x.
-(If you have any issues with the 2Checkout integration that comes with OpenCart 2.x please let us know so that I can assist with fixing.)
-
-### _[Signup free with 2Checkout and start selling!](https://www.2checkout.com/referral?r=git2co)_
-
-### Integrate OpenCart with 2Checkout (Supports Direct Checkout)
+### Integrate OpenCart with 2Checkout
 ----------------------------------------
 
 ### OpenCart Settings
 
-1. Download the 2Checkout payment module from https://github.com/craigchristenson/opencart-2checkout
-2. Upload the files to your OpenCart directory.
-3. Sign in to your OpenCart admin.
-4. Click **Extensions** tab and **Payments subtab**.
-5. Under **2Checkout** click **Install** and then click **Edit**.
-6. Enter your **2Checkout Account ID**. _(2Checkout Account Number)_
-7. Select **No** under **Test Mode**.
-8. Select **Yes** under **Checkout Display** if you want to use Inline Checkout.
-9. Select **Complete** under **Order Status**.
-10. Select **Enabled** under **Status**.
-11. Enter your **Secret Word** _(Must be the same value entered on your 2Checkout Site Management page - would recommend an alphanumeric one.)_
+1. Get the latest release artifact from https://github.com/2Checkout/opencart-2checkout/releases
+2. Sign in to your OpenCart admin.
+3. Under **Extensions** -> **Installer** click **Upload** and choose the release that you downloaded.
+4. Under **Extensions** click **Extensions** and select **Payments** under **Choose the extension type**.
+5. Click **Install** on the payment option you want to use (**2Checkout API**, **2Checkout Convert Plus**, **2Checkout Inline**) and then click **Edit**.
+6. Enter your **2Checkout Account ID** _(Merchant Code, Found in your 2Checkout Control Panel)_
+7. Enter your **Secret Key** _(Found in your 2Checkout Control Panel)_
+8. Enter your **Secret Word** _(Found in your 2Checkout Control Panel)_
+9. Under **Test Mode** select **No** for live sales or **Yes** for test sales.
+10. Select **Complete** under **Order Status**.
+11. Select **Enabled** under **Status**.
 12. Save your changes.
 
 ### 2Checkout Settings
 
 1. Sign in to your 2Checkout account. 
-2. Click the **Account** tab and **Site Management** subcategory. 
-3. Under **Direct Return** select **Header Redirect** or **Given links back to my website**.
-4. Enter your **Secret Word**._(Must be the same value entered in your OpenCart admin.)_
-5. Set the **Approved URL** to http://www.yourstore.com/index.php?route=extension/payment/twocheckout/callback _(Replace http://www.yourstore.com with the actual URL to your store.)_
-6. Click **Save Changes**. 
+2. Navigate to Dashboard → Integrations → Webhooks & API Section
+3. Make sure to enable the IPN webhook notification in your Merchant Control Panel.
+	- Log in to the 2Checkout Merchant Control Panel and navigate to Integrations → Webhooks & API
+	- Scroll down to the Notifications section and enable the IPN webhook
+	- For the Payment notification type field, select IPN or Email Text & IPN, and then click on the Configure IPN button.
+	- On the IPN settings page, click on the Add IPN URL button and input the IPN URL available in the configuration page in OpenCart.
+	- Enable all triggers and response tags
 
 Please feel free to contact 2Checkout directly with any integration questions via supportplus@2checkout.com.
