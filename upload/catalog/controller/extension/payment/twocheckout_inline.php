@@ -44,7 +44,7 @@ class ControllerExtensionPaymentTwoCheckoutInline extends Controller
             'state'        => $order_info['payment_zone_code'] ?? 'XX',
             'email'        => $order_info['email'],
             'address'      => $order_info['payment_address_1'],
-            'address2'      => $order_info['payment_address_2']??'',
+            'address2'     => $order_info['payment_address_2'] ?? '',
             'city'         => $order_info['payment_city'],
             'company-name' => $order_info['payment_company'],
             'zip'          => $order_info['payment_postcode'],
@@ -92,7 +92,6 @@ class ControllerExtensionPaymentTwoCheckoutInline extends Controller
         $data['button_confirm'] = $this->language->get('button_confirm');
 
 
-
         return $this->load->view('extension/payment/twocheckout_inline', $data);
     }
 
@@ -123,14 +122,26 @@ class ControllerExtensionPaymentTwoCheckoutInline extends Controller
         if (!isset($params['refno']) || empty($params['refno'])) {
             $this->cancel();
         }
+        $model = $this->model_extension_payment_twocheckout_inline;
+        $tco_order = $model->call('/orders/' . $params['refno'] . '/');
 
-        $this->model_checkout_order->addOrderHistory(
-            $this->session->data['order_id'],
-            $this->config->get('payment_twocheckout_inline_order_status_id'),
-            '2Checkout transaction ID:<strong style="color: #12578c;"> ' . $params['refno'] . '</strong>'
-        );
+        if ($tco_order && !empty($tco_order['RefNo']) && !empty($tco_order['Status'])) {
 
-        $this->success();
+            //default status
+            $status = 1; //pending
+            if (in_array($tco_order['Status'], ['COMPLETE', 'AUTHRECEIVED'])) {
+                $status = $this->config->get('payment_twocheckout_inline_order_status_id');
+            }
+
+            $this->model_checkout_order->addOrderHistory(
+                $this->session->data['order_id'],
+                $status,
+                '2Checkout transaction ID:<strong style="color: #12578c;"> ' . $params['refno'] . '</strong>'
+            );
+
+            $this->success();
+        }
+        $this->cancel();
     }
 
     /**
