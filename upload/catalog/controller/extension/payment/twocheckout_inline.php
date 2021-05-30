@@ -41,23 +41,24 @@ class ControllerExtensionPaymentTwoCheckoutInline extends Controller
             'name'         => $order_info['payment_firstname'] . ' ' . $order_info['payment_lastname'],
             'phone'        => $order_info['telephone'],
             'country'      => $order_info['payment_iso_code_2'],
-            'state'        => $order_info['payment_zone_code'] ?? 'XX',
+            'state'        => isset($order_info['payment_zone_code']) ? $order_info['payment_zone_code'] : 'XX',
             'email'        => $order_info['email'],
             'address'      => $order_info['payment_address_1'],
-            'address2'     => $order_info['payment_address_2'] ?? '',
+            'address2'     => isset($order_info['payment_address_2']) ? $order_info['payment_address_2'] : '',
             'city'         => $order_info['payment_city'],
             'company-name' => $order_info['payment_company'],
             'zip'          => $order_info['payment_postcode'],
         ];
 
         $shippingAddressData = [
-            'ship-name'     => '',//$order_info['shipping_firstname'] . ' ' . $order_info['shipping_lastname'],
+            'ship-name'     => $order_info['shipping_firstname'] . ' ' . $order_info['shipping_lastname'],
             'ship-country'  => $order_info['shipping_iso_code_2'],
-            'ship-state'    => $order_info['shipping_zone_code'] ?? 'XX',
+            'ship-state'    => isset($order_info['shipping_zone_code']) ? $order_info['shipping_zone_code'] : 'XX',
             'ship-city'     => $order_info['shipping_city'],
-            'ship-email'    => '',//$order_info['email'],
+            'ship-email'    => $order_info['email'],
             'ship-address'  => $order_info['shipping_address_1'],
-            'ship-address2' => !empty($order_info['shipping_address_2']) ? $order_info['shipping_address_2'] : '',
+            'ship-address2' => (isset($order_info['shipping_address_2']) && !empty($order_info['shipping_address_2'])
+            ) ? $order_info['shipping_address_2'] : '',
         ];
 
         $payload['products'][] = [
@@ -77,7 +78,7 @@ class ControllerExtensionPaymentTwoCheckoutInline extends Controller
         $payload['test'] = $config['payment_twocheckout_inline_test'] === 'yes' ? 1 : 0;
         $payload['order-ext-ref'] = $order_id;
         $payload['customer-ext-ref'] = $order_info['email'];
-        $payload['src'] = 'OPENCART_3_6';
+        $payload['src'] = 'OPENCART_'.str_replace('.','_',VERSION);
         $payload['mode'] = 'DYNAMIC';
         $payload['dynamic'] = '1';
         $payload['country'] = strtoupper($order_info['payment_iso_code_2']);

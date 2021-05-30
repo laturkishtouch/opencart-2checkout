@@ -39,9 +39,10 @@ class ModelExtensionPaymentTwocheckoutInline extends Model
      * @param int $order_id
      * @return null
      */
-    public function getTransactionByOrderId(int $order_id)
+    public function getTransactionByOrderId( $order_id)
     {
-        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "twocheckout_inline` WHERE `order_id` = '" . (int)$order_id . "' LIMIT 1");
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "twocheckout_inline` WHERE `order_id` = '" .
+                                  intval($order_id) . "' LIMIT 1");
 
         return ($query->num_rows) ? $query->row : null;
     }

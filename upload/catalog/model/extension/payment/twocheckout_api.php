@@ -126,12 +126,12 @@ class ModelExtensionPaymentTwoCheckoutApi extends Model
      *
      * @return array
      */
-    public function getBillingDetails(array $post_data, string $country_iso)
+    public function getBillingDetails( array $post_data, $country_iso)
     {
         $address = [
             'Address1'    => $post_data['payment_address_1'],
             'City'        => $post_data['payment_city'],
-            'State'       => $post_data['payment_zone_code'] ?? 'XX',
+            'State'       => isset($post_data['payment_zone_code']) ? $post_data['payment_zone_code'] : 'XX',
             'CountryCode' => $country_iso,
             'Email'       => $post_data['email'],
             'FirstName'   => $post_data['payment_firstname'],
@@ -153,7 +153,7 @@ class ModelExtensionPaymentTwoCheckoutApi extends Model
      * @param float  $total
      * @return mixed
      */
-    public function getItem(string $name, float $total)
+    public function getItem( $name, $total)
     {
         $items[] = [
             'Code'             => null,
@@ -179,7 +179,7 @@ class ModelExtensionPaymentTwoCheckoutApi extends Model
      * @param string $currency
      * @return array
      */
-    public function getPaymentDetails(string $type, string $token, string $currency)
+    public function getPaymentDetails( $type, $token, $currency)
     {
 
         return [
@@ -375,9 +375,11 @@ class ModelExtensionPaymentTwoCheckoutApi extends Model
      */
     private function isChargeBack($params)
     {
+        $chargeBackResolution = isset($params['CHARGEBACK_RESOLUTION']) ? trim($params['CHARGEBACK_RESOLUTION']) : '';
+        $chargeBackReasonCode = isset($params['CHARGEBACK_REASON_CODE']) ? trim($params['CHARGEBACK_REASON_CODE']) : '';
+
         // we need to mock up a message with some params in order to add this note
-        if (!empty(trim($params['CHARGEBACK_RESOLUTION']) && trim($params['CHARGEBACK_RESOLUTION']) !== 'NONE') &&
-            !empty(trim($params['CHARGEBACK_REASON_CODE']))) {
+        if (!empty($chargeBackResolution) && $chargeBackResolution !== 'NONE' && !empty($chargeBackReasonCode)) {
 
             $this->load->model('checkout/order');
             // list of chargeback reasons on 2CO platform
@@ -395,10 +397,10 @@ class ModelExtensionPaymentTwoCheckoutApi extends Model
                 'NOT_AS_DESCRIBED'         => 'Product(s) not as described/not functional'
             ];
 
-            $why = isset($reasons[trim($params['CHARGEBACK_REASON_CODE'])]) ?
-                $reasons[trim($params['CHARGEBACK_REASON_CODE'])] :
+            $why = isset($reasons[$chargeBackReasonCode]) ?
+                $reasons[$chargeBackReasonCode] :
                 $reasons['UNKNOWN'];
-            $message = '2Checkout chargeback status is now ' . $params['CHARGEBACK_RESOLUTION'] . '. Reason: ' . $why . '!';
+            $message = '2Checkout chargeback status is now ' . $chargeBackResolution . '. Reason: ' . $why . '!';
             $this->model_checkout_order->addOrderHistory($params['REFNOEXT'], self::OPENCART_CHARGEBACK, $message);
 
             return true;

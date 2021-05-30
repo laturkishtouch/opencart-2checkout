@@ -88,7 +88,11 @@ class ControllerExtensionPaymentTwoCheckoutCplus extends Controller {
 			if ( in_array( $api_response['Status'], [ 'AUTHRECEIVED', 'COMPLETE' ] ) )
 			{
 				$order_status_id = $this->config->get( 'payment_twocheckout_cplus_processing_status_id' );
-				$this->model_checkout_order->addOrderHistory( $params['order-ext-ref'], $order_status_id );
+                $this->model_checkout_order->addOrderHistory(
+                    $this->session->data['order_id'],
+                    $order_status_id,
+                    '2Checkout transaction ID:<strong style="color: #12578c;"> ' . $api_response['RefNo'] . '</strong>'
+                );
 			}
 		}
 

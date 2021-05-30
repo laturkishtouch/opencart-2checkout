@@ -99,7 +99,7 @@ class ModelExtensionPaymentTwoCheckoutCplus extends Model
 	 * @return mixed
 	 * @throws Exception
 	 */
-	public function call( string $endpoint, array $params, $method = 'POST', $sellerId, $secretKey) {
+	public function call( $endpoint, array $params, $method = 'POST', $sellerId, $secretKey) {
 		// if endpoint does not starts or end with a '/' we add it, as the API needs it
 		if ( $endpoint[0] !== '/' ) {
 			$endpoint = '/' . $endpoint;
@@ -120,6 +120,11 @@ class ModelExtensionPaymentTwoCheckoutCplus extends Model
 				curl_setopt( $ch, CURLOPT_POST, true );
 				curl_setopt( $ch, CURLOPT_POSTFIELDS, json_encode( $params, JSON_UNESCAPED_UNICODE ) );
 			}
+		
+            if ( $this->config->get( 'payment_twocheckout_cplus_test' ) ) {
+                curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, false ); //by default value is 2
+                curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false ); //by default value is 1
+            }
 			$response = curl_exec( $ch );
 
 			if ( $response === false ) {
@@ -160,8 +165,14 @@ class ModelExtensionPaymentTwoCheckoutCplus extends Model
 				'content-type: application/json',
 				'cache-control: no-cache',
 				'merchant-token: ' . $jwtToken,
+
 			],
 		] );
+
+        if ( $this->config->get( 'payment_twocheckout_cplus_test' ) ) {
+            curl_setopt( $curl, CURLOPT_SSL_VERIFYHOST, false ); //by default value is 2
+            curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false ); //by default value is 1
+        }
 		$response = curl_exec( $curl );
 		$err      = curl_error( $curl );
 		curl_close( $curl );
@@ -417,30 +428,33 @@ class ModelExtensionPaymentTwoCheckoutCplus extends Model
 	 */
 	private function isChargeBack($params)
 	{
-		// we need to mock up a message with some params in order to add this note
-		if (!empty($params['CHARGEBACK_RESOLUTION']) && $params['CHARGEBACK_RESOLUTION'] !== 'NONE' &&
-		    !empty($params['CHARGEBACK_REASON_CODE'])) {
+        $chargeBackResolution = isset($params['CHARGEBACK_RESOLUTION']) ? trim($params['CHARGEBACK_RESOLUTION']) : '';
+        $chargeBackReasonCode = isset($params['CHARGEBACK_REASON_CODE']) ? trim($params['CHARGEBACK_REASON_CODE']) : '';
 
-			$this->load->model('checkout/order');
-			// list of chargeback reasons on 2CO platform
-			$reasons = [
-				'UNKNOWN'                  => 'Unknown', //default
-				'MERCHANDISE_NOT_RECEIVED' => 'Order not fulfilled/not delivered',
-				'DUPLICATE_TRANSACTION'    => 'Duplicate order',
-				'FRAUD / NOT_RECOGNIZED'   => 'Fraud/Order not recognized',
-				'FRAUD'                    => 'Fraud',
-				'CREDIT_NOT_PROCESSED'     => 'Agreed refund not processed',
-				'NOT_RECOGNIZED'           => 'New/renewal order not recognized',
-				'AUTHORIZATION_PROBLEM'    => 'Authorization problem',
-				'INFO_REQUEST'             => 'Information request',
-				'CANCELED_RECURRING'       => 'Recurring payment was canceled',
-				'NOT_AS_DESCRIBED'         => 'Product(s) not as described/not functional'
-			];
+        // we need to mock up a message with some params in order to add this note
+        if (!empty($chargeBackResolution) && $chargeBackResolution !== 'NONE' && !empty($chargeBackReasonCode)) {
 
-			$why = isset($reasons[trim($params['CHARGEBACK_REASON_CODE'])]) ?
-				$reasons[trim($params['CHARGEBACK_REASON_CODE'])] :
-				$reasons['UNKNOWN'];
-			$message = '2Checkout chargeback status is now ' . $params['CHARGEBACK_RESOLUTION'] . '. Reason: ' . $why . '!';
+            $this->load->model('checkout/order');
+            // list of chargeback reasons on 2CO platform
+            $reasons = [
+                'UNKNOWN'                  => 'Unknown', //default
+                'MERCHANDISE_NOT_RECEIVED' => 'Order not fulfilled/not delivered',
+                'DUPLICATE_TRANSACTION'    => 'Duplicate order',
+                'FRAUD / NOT_RECOGNIZED'   => 'Fraud/Order not recognized',
+                'FRAUD'                    => 'Fraud',
+                'CREDIT_NOT_PROCESSED'     => 'Agreed refund not processed',
+                'NOT_RECOGNIZED'           => 'New/renewal order not recognized',
+                'AUTHORIZATION_PROBLEM'    => 'Authorization problem',
+                'INFO_REQUEST'             => 'Information request',
+                'CANCELED_RECURRING'       => 'Recurring payment was canceled',
+                'NOT_AS_DESCRIBED'         => 'Product(s) not as described/not functional'
+            ];
+
+            $why = isset($reasons[$chargeBackReasonCode]) ?
+                $reasons[$chargeBackReasonCode] :
+                $reasons['UNKNOWN'];
+            $message = '2Checkout chargeback status is now ' . $chargeBackResolution . '. Reason: ' . $why . '!';
+
 			$this->log->write('Order status changed to chargeback');
 			$order_status_id = $this->config->get('payment_twocheckout_cplus_chargeback_status_id');
 			$this->model_checkout_order->addOrderHistory($params['REFNOEXT'],  $order_status_id, $message);
@@ -537,7 +551,7 @@ class ModelExtensionPaymentTwoCheckoutCplus extends Model
 		$buy_link_params['qty']      = 1;
 		$buy_link_params['type']     = 'PRODUCT';
 		$buy_link_params['tangible'] = 0;
-		$buy_link_params['src']      = 'OPENCART_3_0_3_6';
+		$buy_link_params['src']      = 'OPENCART_'.str_replace('.','_',VERSION);
 		$buy_link_params['return-type']      = 'redirect';
 		$buy_link_params['return-url']       = $this->url->link( 'extension/payment/twocheckout_cplus/success' );
 		$buy_link_params['expiration']       = time() + ( 3600 * 5 );

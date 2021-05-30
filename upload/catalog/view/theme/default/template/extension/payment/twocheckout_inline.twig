@@ -1,5 +1,5 @@
 <form id="tco-payment-form">
-    <button class="btn btn-primary pull-right" id="placeOrderTco">{{ button_confirm }}</button>
+    <button class="btn btn-primary pull-right" id="placeOrderTcoInline">{{ button_confirm }}</button>
     <div class="clearfix"></div>
 </form>
 
@@ -7,7 +7,7 @@
     var params = {{ payload }};
     $(document).ready(function () {
         resetTwoCheckout();
-        $('body').on('click', '#placeOrderTco', function (event) {
+        $('body').on('click', '#placeOrderTcoInline', function (event) {
             event.preventDefault();
             twoCheckoutInline();
         });

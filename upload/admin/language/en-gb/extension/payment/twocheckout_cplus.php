@@ -34,6 +34,7 @@ $_['help_ipn'] = 'Add this url to your 2Checkout admin area (under IPN section) 
 $_['help_secret_word'] = 'The secret word to confirm transactions with (must be the same as defined on the merchant account configuration page).';
 $_['help_secret_key'] = 'The secret key (from your 2Checkout account) is required to authenticate into 2Checkout.';
 $_['help_total'] = 'The checkout total the order must reach before this payment method becomes active.';
+$_['help_entry_processing_status'] = 'This status is used for setting order status after payment callback.';
 
 // Error
 $_['error_permission']		  = 'Warning: You do not have permission to modify 2Checkout!';

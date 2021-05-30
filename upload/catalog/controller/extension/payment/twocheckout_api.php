@@ -63,7 +63,7 @@ class ControllerExtensionPaymentTwoCheckoutApi extends Controller
             'Language'          => strtolower(substr($this->session->data['language'], 0, 2)),
             'Country'           => $country_iso,
             'CustomerIP'        => $model->getCustomerIp(),
-            'Source'            => 'OPENCART_3',
+            'Source'            => 'OPENCART_'.str_replace('.','_',VERSION),
             'ExternalReference' => $order_id,
             'Items'             => $model->getItem($order_info['store_name'], $total),
             'BillingDetails'    => $model->getBillingDetails($order_info, $country_iso),

@@ -265,9 +265,11 @@ class ModelExtensionPaymentTwoCheckoutInline extends Model
      */
     private function isChargeBack($params)
     {
+        $chargeBackResolution = isset($params['CHARGEBACK_RESOLUTION']) ? trim($params['CHARGEBACK_RESOLUTION']) : '';
+        $chargeBackReasonCode = isset($params['CHARGEBACK_REASON_CODE']) ? trim($params['CHARGEBACK_REASON_CODE']) : '';
+
         // we need to mock up a message with some params in order to add this note
-        if (!empty(trim($params['CHARGEBACK_RESOLUTION']) && trim($params['CHARGEBACK_RESOLUTION']) !== 'NONE') &&
-            !empty(trim($params['CHARGEBACK_REASON_CODE']))) {
+        if (!empty($chargeBackResolution) && $chargeBackResolution !== 'NONE' && !empty($chargeBackReasonCode)) {
 
             $this->load->model('checkout/order');
             // list of chargeback reasons on 2CO platform
@@ -285,10 +287,10 @@ class ModelExtensionPaymentTwoCheckoutInline extends Model
                 'NOT_AS_DESCRIBED'         => 'Product(s) not as described/not functional'
             ];
 
-            $why = isset($reasons[trim($params['CHARGEBACK_REASON_CODE'])]) ?
-                $reasons[trim($params['CHARGEBACK_REASON_CODE'])] :
+            $why = isset($reasons[$chargeBackReasonCode]) ?
+                $reasons[$chargeBackReasonCode] :
                 $reasons['UNKNOWN'];
-            $message = '2Checkout chargeback status is now ' . $params['CHARGEBACK_RESOLUTION'] . '. Reason: ' . $why . '!';
+            $message = '2Checkout chargeback status is now ' . $chargeBackResolution . '. Reason: ' . $why . '!';
             $this->model_checkout_order->addOrderHistory($params['REFNOEXT'], self::OPENCART_CHARGEBACK, $message);
 
             return true;

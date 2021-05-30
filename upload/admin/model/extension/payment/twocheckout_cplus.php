@@ -37,8 +37,9 @@ class ModelExtensionPaymentTwocheckoutCplus extends Model {
 	 *
 	 * @return null
 	 */
-	public function getTransactionByOrderId( int $order_id ) {
-		$query = $this->db->query( "SELECT * FROM `" . DB_PREFIX . "twocheckout_cplus` WHERE `order_id` = '" . (int) $order_id . "' LIMIT 1" );
+	public function getTransactionByOrderId( $order_id ) {
+		$query = $this->db->query( "SELECT * FROM `" . DB_PREFIX . "twocheckout_cplus` WHERE `order_id` = '" .
+                                   intval($order_id) . "' LIMIT 1" );
 
 		return ( $query->num_rows ) ? $query->row : null;
 	}
